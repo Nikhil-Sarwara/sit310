@@ -11,7 +11,7 @@ from geometry_msgs.msg import Twist # Although not directly used for distance ca
 from std_msgs.msg import Float64
 from turtlesim.msg import Pose
 import time
-import math
+import math 
 
 class DistanceReader:
     def __init__(self):
@@ -38,7 +38,7 @@ class DistanceReader:
 
     # Whenever a message is received from the specified subscriber, this function will be called
     def callback(self,msg):
-        rospy.loginfo("Turtle Position: x=%s, y=%s", msg.x, msg.y)
+        rospy.loginfo("Turtle Position: x=%s, y=%s, Total Distance: %s", msg.x, msg.y, self.total_distance_travelled)
 
         ########## YOUR CODE GOES HERE ##########
         # Calculate the distance the turtle has travelled and publish it
