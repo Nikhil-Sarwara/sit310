@@ -1,7 +1,7 @@
 # parameters
 ARG REPO_NAME="sit310"
 ARG DESCRIPTION="Base class repo for UML EECE 5560"
-ARG MAINTAINER="Nikhil Sarwara (nikhilsarwara@deakin.edu.au)"
+ARG MAINTAINER="Nikhil Sarwara (s224234862@deakin.edu.au)"
 # pick an icon from: https://fontawesome.com/v4.7.0/icons/
 ARG ICON="cube"
 
