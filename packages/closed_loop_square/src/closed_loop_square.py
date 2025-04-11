@@ -44,11 +44,11 @@ class Drive_Square:
         elif msg.state == "LANE_FOLLOWING":
             rospy.sleep(1)  # Wait for a sec for the node to be ready
             # Example of how you might call the closed-loop functions
-            # self.move_straight_closed_loop(1.0, 0.2)  # Move forward 1 meter at 0.2 m/s
+            self.move_straight_closed_loop(1.0, 0.2)  # Move forward 1 meter at 0.2 m/s
             # rospy.sleep(5) # Give time to move
             # self.rotate_in_place_closed_loop(90.0, 0.5) # Rotate 90 degrees at 0.5 rad/s
             # rospy.sleep(5) # Give time to rotate
-            self.move_robot() # Call the square drawing function
+            # self.move_robot() # Call the square drawing function
 
     # Sends zero velocities to stop the robot
     def stop_robot(self):
