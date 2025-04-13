@@ -1,24 +1,22 @@
 #!/usr/bin/env python3
 
 import rospy
-from duckietown_msgs.msg import Twist2DStamped
-from duckietown_msgs.msg import FSMState
-from duckietown_msgs.msg import WheelEncoderStamped
+from duckietown_msgs.msg import Twist2DStamped, FSMState, WheelEncoderStamped
 
 class Drive_Square:
 
     def __init__(self):
         self.cmd_msg = Twist2DStamped()
 
-        self.start_left_ticks = None
+        self.start_left_ticks = 0
         self.current_left_ticks = 0
         self.last_left_sync = 0
 
-        self.start_right_ticks = None
+        self.start_right_ticks = 0
         self.current_right_ticks = 0
         self.last_right_sync = 0
 
-        self.moving = False
+        self.stage = "idle"  # Can be "idle", "forward", "backward", "done"
 
         rospy.init_node('drive_square_node', anonymous=True)
 
@@ -28,72 +26,66 @@ class Drive_Square:
         rospy.Subscriber('/majdoor/right_wheel_encoder_node/tick', WheelEncoderStamped, self.right_encoder_callback, queue_size=1)
 
     def fsm_callback(self, msg):
-        rospy.loginfo("State: %s", msg.state)
-        if msg.state == "NORMAL_JOYSTICK_CONTROL":
-            self.stop_robot()
-            self.moving = False
-            self.start_left_ticks = None
-            self.start_right_ticks = None
-        elif msg.state == "LANE_FOLLOWING":
-            self.start_left_ticks = None
-            self.start_right_ticks = None
+        rospy.loginfo("FSM State: %s", msg.state)
+        if msg.state == "LANE_FOLLOWING" and self.stage == "idle":
+            self.stage = "forward"
+            self.start_left_ticks = self.current_left_ticks
+            self.start_right_ticks = self.current_right_ticks
             self.last_left_sync = 0
             self.last_right_sync = 0
-            self.moving = True
-            rospy.loginfo("Starting movement...")
+            self.send_command(0.5, 0.0)
+            rospy.loginfo("Starting forward movement...")
 
     def left_encoder_callback(self, msg):
         self.current_left_ticks = msg.data
-        self.check_and_update()
+        self.process_movement()
 
     def right_encoder_callback(self, msg):
         self.current_right_ticks = msg.data
-        self.check_and_update()
+        self.process_movement()
 
-    def check_and_update(self):
-        if not self.moving:
-            return
-
-        if self.start_left_ticks is None or self.start_right_ticks is None:
-            self.start_left_ticks = self.current_left_ticks
-            self.start_right_ticks = self.current_right_ticks
-            rospy.loginfo("Initial ticks — Left: %d, Right: %d", self.start_left_ticks, self.start_right_ticks)
-            self.send_command(0.5, 0.0)  # Start moving straight
+    def process_movement(self):
+        if self.stage not in ["forward", "backward"]:
             return
 
         left_diff = abs(self.current_left_ticks - self.start_left_ticks)
         right_diff = abs(self.current_right_ticks - self.start_right_ticks)
 
-        # Stop condition
         if left_diff >= 600 and right_diff >= 600:
-            rospy.loginfo("Both wheels reached 600 ticks. Stopping.")
             self.stop_robot()
-            self.moving = False
+            rospy.loginfo("%s movement complete.", self.stage.capitalize())
+            if self.stage == "forward":
+                rospy.sleep(1.0)
+                self.stage = "backward"
+                self.start_left_ticks = self.current_left_ticks
+                self.start_right_ticks = self.current_right_ticks
+                self.last_left_sync = 0
+                self.last_right_sync = 0
+                self.send_command(-0.5, 0.0)
+                rospy.loginfo("Starting backward movement...")
+            else:
+                self.stage = "done"
+                rospy.loginfo("All movements complete. Robot stopped.")
             return
 
-        # Sync check every 10 ticks
-        if (left_diff - self.last_left_sync >= 10) and (right_diff - self.last_right_sync >= 10):
-            rospy.loginfo("Tick check — Left: %d, Right: %d", left_diff, right_diff)
-            tick_gap = left_diff - right_diff
+        # Sync correction every 10 ticks
+        left_sync = abs(self.current_left_ticks - self.start_left_ticks)
+        right_sync = abs(self.current_right_ticks - self.start_right_ticks)
 
-            # Adjust based on which side is ahead
+        if (left_sync - self.last_left_sync >= 10) and (right_sync - self.last_right_sync >= 10):
+            tick_gap = left_sync - right_sync
+            base_speed = 0.3 if self.stage == "forward" else -0.3
+
             if abs(tick_gap) >= 1:
                 if tick_gap > 0:
-                    # Left is ahead, curve slightly right
-                    rospy.loginfo("Left wheel ahead by %d ticks. Adjusting right.", tick_gap)
-                    self.send_command(0.3, 0.5)
-                elif tick_gap < 0:
-                    # Right is ahead, curve slightly left
-                    rospy.loginfo("Right wheel ahead by %d ticks. Adjusting left.", -tick_gap)
-                    self.send_command(0.3, -0.5)
+                    self.send_command(base_speed, 0.5)
+                else:
+                    self.send_command(base_speed, -0.5)
             else:
-                # Wheels are synced, go straight
-                rospy.loginfo("Wheels synced. Moving straight.")
-                self.send_command(0.5, 0.0)
+                self.send_command(0.5 if self.stage == "forward" else -0.5, 0.0)
 
-            # Update sync checkpoints
-            self.last_left_sync = left_diff
-            self.last_right_sync = right_diff
+            self.last_left_sync = left_sync
+            self.last_right_sync = right_sync
 
     def send_command(self, velocity, omega):
         self.cmd_msg.header.stamp = rospy.Time.now()
@@ -113,4 +105,5 @@ if __name__ == '__main__':
         duckiebot_movement.run()
     except rospy.ROSInterruptException:
         pass
+
 
