@@ -15,8 +15,8 @@ class Target_Follower:
         rospy.on_shutdown(self.clean_shutdown)
         
         ###### Init Pub/Subs. REMEMBER TO REPLACE "akandb" WITH YOUR ROBOT'S NAME #####
-        self.cmd_vel_pub = rospy.Publisher('/akandb/car_cmd_switch_node/cmd', Twist2DStamped, queue_size=1)
-        rospy.Subscriber('/akandb/apriltag_detector_node/detections', AprilTagDetectionArray, self.tag_callback, queue_size=1)
+        self.cmd_vel_pub = rospy.Publisher('/majdoor/car_cmd_switch_node/cmd', Twist2DStamped, queue_size=1)
+        rospy.Subscriber('/majdoor/apriltag_detector_node/detections', AprilTagDetectionArray, self.tag_callback, queue_size=1)
         ################################################################
 
         rospy.spin() # Spin forever but listen to message callbacks
@@ -40,29 +40,28 @@ class Target_Follower:
 
     def move_robot(self, detections):
 
-        #### YOUR CODE GOES HERE ####
-
-        if len(detections) == 0:
-            return
-
-        x = detections[0].transform.translation.x
-        y = detections[0].transform.translation.y
-        z = detections[0].transform.translation.z
-
-        rospy.loginfo("x,y,z: %f %f %f", x, y, z)
-
-
-        # Publish a velocity
         cmd_msg = Twist2DStamped()
         cmd_msg.header.stamp = rospy.Time.now()
-        cmd_msg.v = 0.0
-        cmd_msg.omega = 0.0
+
+        if len(detections) == 0:
+            # Implement Seek an object: Rotate in place
+            cmd_msg.v = 0.0 
+            cmd_msg.omega = 5 # Adjust this value to control rotation speed
+            rospy.loginfo("No tags detected, seeking object...")
+        else:
+            # Implement Look at the Object (details below)
+            # For now, keep linear velocity zero as per task requirement for this feature
+            cmd_msg.v = 0.0
+            # Calculate omega based on tag position (details below)
+            # cmd_msg.omega = ...
+            rospy.loginfo("Tag detected, looking at object...")
+
+
         self.cmd_vel_pub.publish(cmd_msg)
-
-        #############################
-
+        
 if __name__ == '__main__':
     try:
         target_follower = Target_Follower()
     except rospy.ROSInterruptException:
         pass
+
