@@ -7,11 +7,8 @@ import sys
 original_image_filename = 'Raw Camera Image_screenshot_07.05.2025.png'
 original_image_path = original_image_filename
 
-# Define your BEST performing yellow color range in HSV from your previous experiments
-# *** REPLACE THESE EXAMPLE VALUES WITH YOUR ACTUAL BEST VALUES ***
 lower_yellow_hsv = np.array([20, 100, 100])
 upper_yellow_hsv = np.array([40, 255, 255])
-# ***************************************************************
 
 # Parameters for simulating lighting changes (Experiment with these)
 alpha_bright = 1.5  # Factor for brightness/contrast (>1 for brighter)
