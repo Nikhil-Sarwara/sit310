@@ -14,8 +14,8 @@
 		<arg name="apriltags" default="true"/>
 
 	    <!-- Finite state machine -->
-	    <arg name="fsm" value="false"/>
-	    <arg name="/fsm/logic_gate" value="false"/>
+	    <arg name="fsm" value="true"/>
+	    <arg name="/fsm/logic_gate" value="true"/>
 
 	    <!-- Lane Following stack -->
 	    <arg name="lane_following" value="true"/>
@@ -30,3 +30,4 @@
   	</include>
 
 </launch>
+
