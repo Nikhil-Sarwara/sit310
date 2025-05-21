@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
+    <!-- Get robot name -->
     <arg name="veh" default="$(env VEHICLE_NAME)" />
 
-    <!-- Include main stack but disable FSM logic -->
+    <!-- Run lane following, apriltags, but disable FSM auto-control -->
     <include file="$(find duckietown_demos)/launch/master.launch">
         <arg name="veh" value="$(arg veh)" />
         <arg name="demo_name" value="lane_following" />
         <arg name="param_file_name" value="default" />
         <arg name="visualization" value="false" />
         <arg name="apriltags" value="true" />
-
-        <!-- ❌ Disable automatic FSM logic -->
-        <arg name="fsm" value="false" />
+        <arg name="fsm" value="false" />  <!-- Disable default FSM -->
     </include>
 
-    <!-- ✅ Explicit FSM node without logic -->
-    <include file="$(find duckietown_demos)/launch/fsm_node.launch">
-        <arg name="veh" value="$(arg veh)" />
-        <arg name="logic_gate" value="false" />
-    </include>
+    <!-- ✅ Launch FSM node manually without logic gate -->
+    <node name="fsm_node" pkg="duckietown" type="fsm_node" output="screen">
+        <param name="veh" value="$(arg veh)" />
+        <param name="/fsm/logic_gate" value="false" />
+    </node>
 </launch>
 
