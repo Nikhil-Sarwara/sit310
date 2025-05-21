@@ -1,30 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-    <!-- Get the robot name from the environment -->
     <arg name="veh" default="$(env VEHICLE_NAME)" />
 
-    <!-- Include essential Duckietown components -->
+    <!-- Include main stack but disable FSM logic -->
     <include file="$(find duckietown_demos)/launch/master.launch">
         <arg name="veh" value="$(arg veh)" />
         <arg name="demo_name" value="lane_following" />
         <arg name="param_file_name" value="default" />
         <arg name="visualization" value="false" />
-
-        <!-- Enable AprilTags -->
         <arg name="apriltags" value="true" />
 
-        <!-- Disable automatic FSM logic -->
+        <!-- ❌ Disable automatic FSM logic -->
         <arg name="fsm" value="false" />
     </include>
 
-    <!-- ✅ Launch FSM node explicitly with logic disabled -->
-    <node name="fsm_node" pkg="duckietown" type="fsm_node.py" output="screen">
-        <param name="veh" value="$(arg veh)" />
-        <param name="/fsm/logic_gate" value="false" />
-    </node>
-
-    <!-- ✅ Optional: launch LED emitter if needed -->
-    <arg name="LED" default="true" />
-    <arg name="/LED/emitter" default="true" />
+    <!-- ✅ Explicit FSM node without logic -->
+    <include file="$(find duckietown_demos)/launch/fsm_node.launch">
+        <arg name="veh" value="$(arg veh)" />
+        <arg name="logic_gate" value="false" />
+    </include>
 </launch>
 
