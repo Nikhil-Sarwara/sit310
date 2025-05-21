@@ -15,7 +15,7 @@
 
 	    <!-- Finite state machine -->
 	    <arg name="fsm" value="true"/>
-	    <arg name="/fsm/logic_gate" value="true"/>
+	    <arg name="/fsm/logic_gate" value="false"/>
 
 	    <!-- Lane Following stack -->
 	    <arg name="lane_following" value="true"/>
